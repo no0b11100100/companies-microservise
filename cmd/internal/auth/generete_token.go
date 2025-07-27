@@ -1,10 +1,9 @@
-//TODO: remove this file
-
 package auth
 
 import (
 	configparser "companies/cmd/internal/configParser"
 	"encoding/json"
+	"log"
 	"net/http"
 	"time"
 
@@ -21,33 +20,20 @@ func GenerateToken(username string) (string, error) {
 	}
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 
-	jwtKey := configparser.GetCfgValue("JWT_SECRET", "default-secret")
-	return token.SignedString(jwtKey)
-}
-
-type LoginRequest struct {
-	Username string `json:"username"`
-	Password string `json:"password"`
+	jwtKey := configparser.GetCfgValue("JWT_SECRET", "very-secret-key")
+	return token.SignedString([]byte(jwtKey))
 }
 
 func HandleFunc(w http.ResponseWriter, r *http.Request) {
-	var creds LoginRequest
-	if err := json.NewDecoder(r.Body).Decode(&creds); err != nil {
-		http.Error(w, "Invalid request", http.StatusBadRequest)
-		return
-	}
-
-	// Dummy check — replace with DB/user service check
-	if creds.Username != "admin" || creds.Password != "password" {
-		http.Error(w, "Unauthorized", http.StatusUnauthorized)
-		return
-	}
-
-	token, err := GenerateToken(creds.Username)
+	token, err := GenerateToken("admin")
 	if err != nil {
+		log.Println("TOKEN ERROR", err)
 		http.Error(w, "Could not generate token", http.StatusInternalServerError)
 		return
 	}
 
-	json.NewEncoder(w).Encode(map[string]string{"token": token})
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+
+	_ = json.NewEncoder(w).Encode(map[string]string{"token": token})
 }

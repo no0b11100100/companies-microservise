@@ -2,7 +2,6 @@ package handlers
 
 import (
 	"bytes"
-	// "companies/cmd/internal/eventsender"
 
 	"companies/cmd/internal/structs"
 	"companies/cmd/tests/mocks"
@@ -28,7 +27,6 @@ func newDeleteTestRequest(method, url string, id string) *http.Request {
 
 func TestDeleteRecordHandler_Success(t *testing.T) {
 	ctrl := gomock.NewController(t)
-	defer ctrl.Finish()
 
 	mockDB := mocks.NewMockdeleteRecordDB(ctrl)
 	mockSender := mocks.NewMockEventSender(ctrl)
@@ -44,12 +42,11 @@ func TestDeleteRecordHandler_Success(t *testing.T) {
 	handler := NewDeleteRecordHandler(mockDB, mockSender)
 	handler.ServeHTTP(rr, req)
 
-	assert.Equal(t, http.StatusOK, rr.Code)
+	assert.Equal(t, http.StatusNoContent, rr.Code)
 }
 
 func TestDeleteRecordHandler_InvalidUUID(t *testing.T) {
 	ctrl := gomock.NewController(t)
-	defer ctrl.Finish()
 
 	mockDB := mocks.NewMockdeleteRecordDB(ctrl)
 	mockSender := mocks.NewMockEventSender(ctrl)
@@ -70,7 +67,6 @@ func TestDeleteRecordHandler_InvalidUUID(t *testing.T) {
 
 func TestDeleteRecordHandler_DeleteFails(t *testing.T) {
 	ctrl := gomock.NewController(t)
-	defer ctrl.Finish()
 
 	mockDB := mocks.NewMockdeleteRecordDB(ctrl)
 	mockSender := mocks.NewMockEventSender(ctrl)

@@ -64,6 +64,6 @@ func NewDeleteRecordHandler(db deleteRecordDB, eventSender eventsender.EventSend
 			Status: structs.Success,
 		})
 
-		w.WriteHeader(http.StatusOK)
+		w.WriteHeader(http.StatusNoContent)
 	}
 }

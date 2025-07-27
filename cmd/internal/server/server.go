@@ -6,6 +6,7 @@ import (
 	"companies/cmd/internal/consts"
 	"companies/cmd/internal/database"
 	eventsender "companies/cmd/internal/eventSender"
+	"companies/cmd/internal/metrics"
 	"companies/cmd/internal/server/handlers"
 	"context"
 	"fmt"
@@ -40,10 +41,10 @@ func NewRESTfulServer(config configparser.HTTP, db database.Database, eventSende
 
 	server.router = chi.NewRouter()
 
-	// metrics.Init()
+	metrics.Init()
 
 	server.router.Use(middleware.Logger)
-	// server.router.Use(metrics.MetricsMiddleware)
+	server.router.Use(metrics.MetricsMiddleware)
 
 	server.srv = &http.Server{
 		Addr:              fmt.Sprintf("%v:%v", addr, port),

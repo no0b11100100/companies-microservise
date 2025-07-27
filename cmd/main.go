@@ -1,7 +1,5 @@
 package main
 
-// docker-compose down --remove-orphans
-
 // @title Company API
 // @version 1.0
 // @description REST API for managing companies

@@ -34,7 +34,6 @@ func makeValidCompany() database.CompanyInfo {
 
 func TestNewCreateRecordHandler_Success(t *testing.T) {
 	ctrl := gomock.NewController(t)
-	defer ctrl.Finish()
 
 	mockDB := mocks.NewMockcreateRecordDB(ctrl)
 	mockSender := mocks.NewMockEventSender(ctrl)
@@ -59,12 +58,11 @@ func TestNewCreateRecordHandler_Success(t *testing.T) {
 
 func TestNewCreateRecordHandler_InvalidData(t *testing.T) {
 	ctrl := gomock.NewController(t)
-	defer ctrl.Finish()
 
 	mockDB := mocks.NewMockcreateRecordDB(ctrl)
 	mockSender := mocks.NewMockEventSender(ctrl)
 
-	invalid := database.CompanyInfo{} // missing Name, etc.
+	invalid := database.CompanyInfo{}
 
 	mockSender.EXPECT().PublishEvent("data-changed", gomock.Any()).Times(1)
 
@@ -82,7 +80,6 @@ func TestNewCreateRecordHandler_InvalidData(t *testing.T) {
 
 func TestNewCreateRecordHandler_RecordExists(t *testing.T) {
 	ctrl := gomock.NewController(t)
-	defer ctrl.Finish()
 
 	mockDB := mocks.NewMockcreateRecordDB(ctrl)
 	mockSender := mocks.NewMockEventSender(ctrl)
@@ -106,7 +103,6 @@ func TestNewCreateRecordHandler_RecordExists(t *testing.T) {
 
 func TestNewCreateRecordHandler_DBCreateError(t *testing.T) {
 	ctrl := gomock.NewController(t)
-	defer ctrl.Finish()
 
 	mockDB := mocks.NewMockcreateRecordDB(ctrl)
 	mockSender := mocks.NewMockEventSender(ctrl)

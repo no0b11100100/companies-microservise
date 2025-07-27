@@ -19,3 +19,4 @@ issues:
   max-issues-per-linter: 10
   exclude-dirs:
     - docs
+    - tests

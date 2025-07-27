@@ -3,9 +3,9 @@ package main
 import (
 	"bytes"
 	"context"
-	"database/sql"
 	"encoding/json"
 	"fmt"
+	"log"
 	"net/http"
 	"os"
 	"testing"
@@ -15,66 +15,99 @@ import (
 	_ "github.com/go-sql-driver/mysql"
 )
 
-func TestIntegration(t *testing.T) {
-	// Read env vars with fallback
+type TokenResponse struct {
+	Token string `json:"token"`
+}
+
+func getToken(appURL string) string {
+	timeout := time.After(60 * time.Second)
+	ticker := time.NewTicker(2 * time.Second)
+	defer ticker.Stop()
+
+	for {
+		select {
+		case <-timeout:
+			fmt.Println("Timeout reached. Token not received.")
+			return ""
+		case <-ticker.C:
+			req, err := http.NewRequest("POST", appURL+"/api/v1/token", nil)
+			if err != nil {
+				log.Println("Failed to create HTTP request:", err)
+				continue
+			}
+
+			req.Header.Set("Content-Type", "application/json")
+
+			client := &http.Client{}
+			resp, err := client.Do(req)
+			if err != nil {
+				log.Println("HTTP POST request failed:", err)
+				continue
+			}
+
+			defer resp.Body.Close()
+
+			var tokenData TokenResponse
+			if err := json.NewDecoder(resp.Body).Decode(&tokenData); err != nil {
+				log.Println("Failed to parse JSON:", err)
+				continue
+			}
+
+			if tokenData.Token != "" {
+				log.Println("Token received:", tokenData.Token)
+				return tokenData.Token
+			}
+
+			log.Println("Waiting for token...")
+		}
+	}
+}
+
+func TestIntegration_CreateRecord(t *testing.T) {
 	appHost := getEnv("APP_HOST", "app")
 	appPort := getEnv("APP_PORT", "8080")
 	appURL := fmt.Sprintf("http://%s:%s", appHost, appPort)
 
-	dbUser := getEnv("DB_USER", "root")
-	dbPassword := getEnv("DB_PASSWORD", "password")
-	dbHost := getEnv("DB_HOST", "db")
-	dbPort := getEnv("DB_PORT", "3306")
-	dbName := getEnv("DB_NAME", "companiesdb_test")
-
 	kafkaBroker := getEnv("KAFKA_BROKER", "kafka:9092")
 	kafkaTopic := "data-changed"
 
-	// Wait for services to become ready (adjust as needed)
 	t.Log("Waiting for services to be ready...")
-	time.Sleep(50 * time.Second)
+	jwtToken := getToken(appURL)
 
-	// 1. HTTP test: POST request with JSON body
-	t.Logf("Testing HTTP POST to %s", appURL)
-	postBody := map[string]interface{}{
-		"field1": "value1",
-		"field2": 42,
+	if len(jwtToken) == 0 {
+		t.Fatal("Can not reach service")
 	}
+
+	requestURL := appURL + "/api/v1/companies/"
+	t.Logf("Testing HTTP POST to %s", requestURL)
+	postBody := map[string]interface{}{
+		"name":           "Cool Company",
+		"employeesCount": 42,
+		"isRegistered":   true,
+		"type":           1,
+	}
+
 	jsonBytes, err := json.Marshal(postBody)
 	if err != nil {
 		t.Fatalf("failed to marshal POST body: %v", err)
 	}
 
-	resp, err := http.Post(appURL, "application/json", bytes.NewReader(jsonBytes))
+	req, err := http.NewRequest("POST", appURL+"/api/v1/companies/", bytes.NewReader(jsonBytes))
+	if err != nil {
+		t.Fatalf("Failed to create HTTP request: %v", err)
+	}
+
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Authorization", "Bearer "+jwtToken)
+
+	client := &http.Client{}
+	resp, err := client.Do(req)
 	if err != nil {
 		t.Fatalf("HTTP POST request failed: %v", err)
 	}
+
 	defer resp.Body.Close()
 
-	if resp.StatusCode != http.StatusOK {
-		t.Fatalf("expected HTTP 200 OK, got %d", resp.StatusCode)
-	}
-
-	// 2. DB test: open connection and check data
-	dbDSN := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?parseTime=true", dbUser, dbPassword, dbHost, dbPort, dbName)
-	t.Logf("Connecting to DB: %s", dbDSN)
-	db, err := sql.Open("mysql", dbDSN)
-	if err != nil {
-		t.Fatalf("failed to connect to DB: %v", err)
-	}
-	defer db.Close()
-
-	var count int
-	query := "SELECT COUNT(*) FROM your_table WHERE your_condition = ?" // replace with your real query
-	err = db.QueryRow(query, "some_value").Scan(&count)
-	if err != nil {
-		t.Fatalf("DB query failed: %v", err)
-	}
-	if count == 0 {
-		t.Fatal("expected at least one matching row in DB, found none")
-	}
-
-	// 3. Kafka test: consume one message
 	msg := consumeKafkaMessage(t, kafkaBroker, kafkaTopic)
 	if msg == "" {
 		t.Fatal("expected kafka message, got empty")

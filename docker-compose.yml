@@ -4,14 +4,13 @@ services:
   app:
     build: .
     ports:
-      - "8080:8080"        # expose app HTTP server on host:8080
+      - "8080:8080"
     depends_on:
       - db
       - kafka
     environment:
       HTTP_HOST: 0.0.0.0
       HTTP_PORT: 8080
-      JWT_SECRET: w4X8bY9s4fJ7nHxPlA+2Fv7Yq8RmQO3SZj8Phq+k6Xo=
       DB_HOST: db
       DB_PORT: 3306
       DB_NAME: companiesdb

@@ -17,9 +17,9 @@ RUN sh ./cmd/scripts/install_dependencies.sh
 
 RUN go mod tidy
 
-# RUN make lint
-# RUN make generate-mocks
-# RUN make unit-test
+RUN make generate-mocks
+RUN make lint
+RUN make unit-test
 
 RUN CGO_ENABLED=1 GOOS=linux GOARCH=amd64 go build -o main ./cmd
 

@@ -32,7 +32,6 @@ func Init() {
 	prometheus.MustRegister(HttpRequestsTotal, HttpRequestDuration)
 }
 
-// Middleware to wrap all requests
 func MetricsMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		start := time.Now()
@@ -41,7 +40,7 @@ func MetricsMiddleware(next http.Handler) http.Handler {
 		next.ServeHTTP(ww, r)
 
 		duration := time.Since(start).Seconds()
-		routePattern := r.URL.Path // Use r.URL.Path or route template if available
+		routePattern := r.URL.Path
 
 		HttpRequestsTotal.WithLabelValues(r.Method, routePattern, strconv.Itoa(ww.Status())).Inc()
 		HttpRequestDuration.WithLabelValues(r.Method, routePattern).Observe(duration)

@@ -12,7 +12,6 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-// dummyEvent is a minimal struct for Event interface use
 var dummyEvent = structs.Event{
 	URL:    "/test",
 	Type:   structs.Created,
@@ -26,10 +25,8 @@ func TestSender_PublishEvent_Success(t *testing.T) {
 
 	s := &sender{producer: mockProducer}
 
-	// Prepare kafka.Message to simulate successful delivery
 	mockProducer.EXPECT().Produce(gomock.Any(), gomock.Any()).DoAndReturn(
 		func(msg *kafka.Message, deliveryChan chan kafka.Event) error {
-			// Simulate kafka message delivered event
 			go func() {
 				deliveryChan <- &kafka.Message{
 					TopicPartition: kafka.TopicPartition{
@@ -78,7 +75,6 @@ func TestSender_PublishEvent_Failure(t *testing.T) {
 
 func TestSender_Close(t *testing.T) {
 	ctrl := gomock.NewController(t)
-	defer ctrl.Finish()
 
 	mockProducer := mocks.NewMockProducer(ctrl)
 	mockProducer.EXPECT().Close().Return()

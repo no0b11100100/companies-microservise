@@ -11,7 +11,6 @@ services:
     environment:
       HTTP_HOST: 0.0.0.0
       HTTP_PORT: 8080
-      JWT_SECRET: w4X8bY9s4fJ7nHxPlA+2Fv7Yq8RmQO3SZj8Phq+k6Xo=
       DB_HOST: db
       DB_PORT: 3306
       DB_NAME: companiesdb_test
@@ -67,14 +66,8 @@ services:
     networks:
       - app-network
     environment:
-      HTTP_HOST: 0.0.0.0
+      HTTP_HOST: app
       HTTP_PORT: 8080
-      JWT_SECRET: w4X8bY9s4fJ7nHxPlA+2Fv7Yq8RmQO3SZj8Phq+k6Xo=
-      DB_HOST: db
-      DB_PORT: 3306
-      DB_NAME: companiesdb_test
-      DB_USER: root
-      DB_PASSWORD: password
       KAFKA_BROKER: kafka:9092
 
 volumes:

@@ -18,9 +18,9 @@ type Claims struct {
 
 func validateToken(tokenStr string) (*Claims, error) {
 	claims := &Claims{}
-	jwtKey := configparser.GetCfgValue("JWT_SECRET", "default-secret")
+	jwtKey := configparser.GetCfgValue("JWT_SECRET", "very-secret-key")
 	token, err := jwt.ParseWithClaims(tokenStr, claims, func(token *jwt.Token) (interface{}, error) {
-		return jwtKey, nil
+		return []byte(jwtKey), nil
 	})
 
 	if err != nil || !token.Valid {

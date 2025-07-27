@@ -7,9 +7,11 @@ import (
 	"companies/cmd/internal/database"
 	eventsender "companies/cmd/internal/eventSender"
 	"companies/cmd/internal/server/handlers"
+	"context"
 	"fmt"
 	"log"
 	"net/http"
+	"time"
 
 	"github.com/go-chi/chi/middleware"
 	"github.com/go-chi/chi/v5"
@@ -20,11 +22,12 @@ type RESTfulServer struct {
 	router *chi.Mux
 	addr   string
 	port   string
+	srv    *http.Server
 }
 
 type RESTServer interface {
 	Serve()
-	Shutdown()
+	Shutdown() error
 }
 
 func NewRESTfulServer(config configparser.HTTP, db database.Database, eventSender eventsender.EventSender) RESTServer {
@@ -35,6 +38,16 @@ func NewRESTfulServer(config configparser.HTTP, db database.Database, eventSende
 
 	server.router = chi.NewRouter()
 	server.router.Use(middleware.Logger)
+
+	server.srv = &http.Server{
+		Addr:              fmt.Sprintf("%v:%v", addr, port),
+		Handler:           server.router,
+		ReadTimeout:       15 * time.Second,
+		WriteTimeout:      15 * time.Second,
+		IdleTimeout:       60 * time.Second,
+		ReadHeaderTimeout: 5 * time.Second,
+		MaxHeaderBytes:    1024 * 1024,
+	}
 
 	server.initHandlers(db, eventSender)
 
@@ -62,7 +75,16 @@ func (s *RESTfulServer) initHandlers(db database.Database, eventSender eventsend
 
 func (s *RESTfulServer) Serve() {
 	log.Println(consts.ApplicationPrefix, "Starting RESTful server")
-	http.ListenAndServe(fmt.Sprintf("%v:%v", s.addr, s.port), s.router)
+	s.srv.ListenAndServe()
 }
 
-func (s *RESTfulServer) Shutdown() {}
+func (s *RESTfulServer) Shutdown() error {
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	if err := s.srv.Shutdown(ctx); err != nil {
+		return err
+	}
+
+	return nil
+}

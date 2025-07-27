@@ -89,5 +89,6 @@ func (s *sender) PublishEvent(topic string, event Event) error {
 }
 
 func (s *sender) Close() error {
+	s.producer.Close()
 	return nil
 }

@@ -7,6 +7,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"io"
 	"log"
 	"time"
 
@@ -27,7 +28,12 @@ type Database interface {
 	IsRecordExists(string) bool
 }
 
-func NewMySQLDB(config configparser.DB) Database {
+type Storage interface {
+	Database
+	io.Closer
+}
+
+func NewMySQLDB(config configparser.DB) Storage {
 	log.Println(consts.ApplicationPrefix, "Create connection to MySQL DB")
 
 	user := configparser.GetCfgValue("DB_USER", config.User)
@@ -77,6 +83,16 @@ func waitForRediness(dsn string) {
 }
 
 func (msql *MySQLDB) Close() error {
+	sqlDB, err := msql.db.DB()
+	if err != nil {
+		return err
+	}
+
+	err = sqlDB.Close()
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 

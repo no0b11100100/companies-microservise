@@ -18,4 +18,5 @@ type Event struct {
 	Status        int             `json:"status"`
 	Data          json.RawMessage `json:"data,omitempty"`
 	ErrorMesssage string          `json:"errorMessage,omitempty"`
+	URL           string          `json:"url"`
 }

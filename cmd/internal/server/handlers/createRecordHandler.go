@@ -49,16 +49,17 @@ func IsValidInfo(data database.CompanyInfo) bool {
 	return true
 }
 
-// @Summary Create a new company
-// @Description Creates a new company. Requires JWT authentication.
-// @Tags companies
-// @Accept json
-// @Produce json
-// @Param company body database.CompanyInfo true "Company to create"
-// @Success 201 {object} database.CompanyInfo
-// @Failure 400 {object} map[string]string
-// @Security BearerAuth
-// @Router /api/v1/companies [post]
+// @Summary      Create a new company record
+// @Description  Creates a new company with the provided information
+// @Tags         Companies
+// @Accept       json
+// @Produce      json
+// @Security     BearerAuth
+// @Param        company  body      database.CompanyInfo  true  "Company to create"
+// @Success      201      {object}  map[string]string      "Created. Returns the new company ID"
+// @Failure      400      {string}  string                 "Bad request – invalid input or error"
+// @Failure      409      {string}  string                 "Conflict – record already exists"
+// @Router       /api/v1/companies [post]
 func NewCreateRecordHandler(db createRecordDB, eventSender eventsender.EventSender) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		log.Println(consts.ApplicationPrefix, "createRecordHandler::handler", r.Body)
@@ -69,6 +70,7 @@ func NewCreateRecordHandler(db createRecordDB, eventSender eventsender.EventSend
 			log.Println(consts.ApplicationPrefix, "createRecordHandler::handler invalid data")
 			w.WriteHeader(http.StatusBadRequest)
 			eventSender.PublishEvent("data-changed", eventsender.Event{
+				URL:           r.URL.Path,
 				Type:          eventsender.Created,
 				Status:        eventsender.Failed,
 				ErrorMesssage: "invalid data provided",
@@ -80,6 +82,7 @@ func NewCreateRecordHandler(db createRecordDB, eventSender eventsender.EventSend
 			log.Println(consts.ApplicationPrefix, "createRecordHandler::handler record alredy exist")
 			w.WriteHeader(http.StatusConflict)
 			eventSender.PublishEvent("data-changed", eventsender.Event{
+				URL:           r.URL.Path,
 				Type:          eventsender.Created,
 				Status:        eventsender.Failed,
 				ErrorMesssage: "record alredy exist",
@@ -90,6 +93,7 @@ func NewCreateRecordHandler(db createRecordDB, eventSender eventsender.EventSend
 		id, err := db.CreateRecord(record)
 		if err != nil {
 			eventSender.PublishEvent("data-changed", eventsender.Event{
+				URL:           r.URL.Path,
 				Type:          eventsender.Created,
 				Status:        eventsender.Failed,
 				ErrorMesssage: err.Error(),
@@ -100,6 +104,7 @@ func NewCreateRecordHandler(db createRecordDB, eventSender eventsender.EventSend
 		}
 
 		eventSender.PublishEvent("data-changed", eventsender.Event{
+			URL:    r.URL.Path,
 			Type:   eventsender.Created,
 			Status: eventsender.Success,
 		})

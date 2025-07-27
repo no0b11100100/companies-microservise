@@ -16,17 +16,17 @@ type updateRecordDB interface {
 	UpdateRecord(database.CompanyInfo, uuid.UUID) error
 }
 
-// @Summary Update an existing company
-// @Description Updates the company by ID. Requires JWT authentication.
-// @Tags companies
-// @Accept json
-// @Produce json
-// @Param id path string true "Company ID"
-// @Param company body database.CompanyInfo true "Updated company data"
-// @Success 200 {object} database.CompanyInfo
-// @Failure 400 {object} map[string]string
-// @Security BearerAuth
-// @Router /api/v1/companies/{id} [patch]
+// @Summary      Update an existing company
+// @Description  Updates company information by UUID
+// @Tags         Companies
+// @Security     BearerAuth
+// @Accept       json
+// @Produce      json
+// @Param        id      path      string                true  "Company UUID"
+// @Param        company body      database.CompanyInfo  true  "Updated company data"
+// @Success      202     {string}  string                "Accepted – update in progress"
+// @Failure      400     {string}  string                "Bad request – invalid UUID or body"
+// @Router       /api/v1/companies/{id} [patch]
 func NewUpdateRecordHandler(db updateRecordDB, eventSender eventsender.EventSender) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		log.Println(consts.ApplicationPrefix, "updateRecordHandler::handler", r.Body)
@@ -40,6 +40,7 @@ func NewUpdateRecordHandler(db updateRecordDB, eventSender eventsender.EventSend
 		if err != nil {
 			log.Println(consts.ApplicationPrefix, "updateRecordHandler::handler error:", err)
 			eventSender.PublishEvent("data-changed", eventsender.Event{
+				URL:           r.URL.Path,
 				Type:          eventsender.Updated,
 				Status:        eventsender.Failed,
 				ErrorMesssage: err.Error(),
@@ -56,6 +57,7 @@ func NewUpdateRecordHandler(db updateRecordDB, eventSender eventsender.EventSend
 
 		if err != nil {
 			eventSender.PublishEvent("data-changed", eventsender.Event{
+				URL:           r.URL.Path,
 				Type:          eventsender.Updated,
 				Status:        eventsender.Failed,
 				ErrorMesssage: err.Error(),
@@ -67,6 +69,7 @@ func NewUpdateRecordHandler(db updateRecordDB, eventSender eventsender.EventSend
 
 		bytes, _ := json.Marshal(data)
 		eventSender.PublishEvent("data-changed", eventsender.Event{
+			URL:    r.URL.Path,
 			Type:   eventsender.Updated,
 			Status: eventsender.Success,
 			Data:   bytes,

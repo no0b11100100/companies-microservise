@@ -15,6 +15,7 @@ import (
 
 	"github.com/go-chi/chi/middleware"
 	"github.com/go-chi/chi/v5"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 	httpSwagger "github.com/swaggo/http-swagger"
 )
 
@@ -38,7 +39,11 @@ func NewRESTfulServer(config configparser.HTTP, db database.Database, eventSende
 	server := &RESTfulServer{addr: addr, port: port}
 
 	server.router = chi.NewRouter()
+
+	// metrics.Init()
+
 	server.router.Use(middleware.Logger)
+	// server.router.Use(metrics.MetricsMiddleware)
 
 	server.srv = &http.Server{
 		Addr:              fmt.Sprintf("%v:%v", addr, port),
@@ -65,6 +70,8 @@ func (s *RESTfulServer) initHandlers(db database.Database, eventSender eventsend
 	s.router.Post("/api/v1/token", auth.HandleFunc)
 
 	s.router.Get("/swagger/*", httpSwagger.WrapHandler)
+
+	s.router.Handle("/metrics", promhttp.Handler())
 
 	s.router.Route("/api/v1/companies", func(r chi.Router) {
 		r.With(auth.JWTMiddleware).Post("/", create)

@@ -54,6 +54,8 @@ integration-test:
 	# go mod tidy
 
 
+	docker-compose -f docker-compose.test.yml up --build --abort-on-container-exit --exit-code-from testapp
+
 	./cmd/tests/test_env.sh
 
 	docker-compose up --build -d

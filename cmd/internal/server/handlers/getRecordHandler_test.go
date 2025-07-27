@@ -22,7 +22,6 @@ func ptrString(s string) *string {
 
 func TestGetRecordHandler_Success(t *testing.T) {
 	ctrl := gomock.NewController(t)
-	defer ctrl.Finish()
 
 	mockDB := mocks.NewMockgetRecordDB(ctrl)
 	handler := NewGetRecordHandler(mockDB)
@@ -55,7 +54,6 @@ func TestGetRecordHandler_Success(t *testing.T) {
 
 func TestGetRecordHandler_InvalidUUID(t *testing.T) {
 	ctrl := gomock.NewController(t)
-	defer ctrl.Finish()
 
 	mockDB := mocks.NewMockgetRecordDB(ctrl)
 	handler := NewGetRecordHandler(mockDB)
@@ -75,7 +73,6 @@ func TestGetRecordHandler_InvalidUUID(t *testing.T) {
 
 func TestGetRecordHandler_RecordNotFound(t *testing.T) {
 	ctrl := gomock.NewController(t)
-	defer ctrl.Finish()
 
 	mockDB := mocks.NewMockgetRecordDB(ctrl)
 	handler := NewGetRecordHandler(mockDB)

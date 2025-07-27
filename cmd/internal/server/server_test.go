@@ -11,7 +11,6 @@ import (
 
 func TestNewRESTfulServer_NotNil(t *testing.T) {
 	ctrl := gomock.NewController(t)
-	defer ctrl.Finish()
 
 	mockDB := mocks.NewMockDatabase(ctrl)
 	mockEventSender := mocks.NewMockEventSender(ctrl)

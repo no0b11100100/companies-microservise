@@ -112,6 +112,7 @@ func NewCreateRecordHandler(db createRecordDB, eventSender eventsender.EventSend
 			Status: structs.Success,
 		})
 
+		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusCreated)
 
 		resp := map[string]string{"companyId": id.String()}

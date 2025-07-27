@@ -13,17 +13,15 @@ type Rediness struct {
 }
 
 type DB struct {
-	Host      string   `yaml:"host"`
-	Port      string   `yaml:"port"`
-	Name      string   `yaml:"name"`
-	User      string   `yaml:"user"`
-	Password  string   `yaml:"password"`
-	Readiness Rediness `yaml:"readiness"`
+	Host     string `yaml:"host"`
+	Port     string `yaml:"port"`
+	Name     string `yaml:"name"`
+	User     string `yaml:"user"`
+	Password string `yaml:"password"`
 }
 
 type Kafka struct {
-	Broker    string   `yaml:"broker"`
-	Readiness Rediness `yaml:"readiness"`
+	Broker string `yaml:"broker"`
 }
 
 type HTTP struct {

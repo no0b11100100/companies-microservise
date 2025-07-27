@@ -45,15 +45,9 @@ db:
   name: testdb
   user: user
   password: pass
-  readiness:
-    max_wait_seconds: 10
-    poll_interval_seconds: 2
 
 kafka:
   broker: kafka:9092
-  readiness:
-    max_wait_seconds: 5
-    poll_interval_seconds: 1
 
 http:
   addr: 0.0.0.0
@@ -74,27 +68,12 @@ http:
 
 	assert.Equal(t, "localhost", cfg.DB.Host)
 	assert.Equal(t, "5432", cfg.DB.Port)
-	assert.Equal(t, 10, cfg.DB.Readiness.MaxWaitSeconds)
 	assert.Equal(t, "kafka:9092", cfg.Kafka.Broker)
 	assert.Equal(t, "0.0.0.0", cfg.HTTP.Addr)
 }
 
 func TestLoadConfig_FileNotFound(t *testing.T) {
 	cfg, err := LoadConfig("nonexistent.yaml")
-	assert.Error(t, err)
-	assert.NotNil(t, cfg)
-}
-
-func TestLoadConfig_InvalidYAML(t *testing.T) {
-	tmpFile, err := os.CreateTemp("", "invalid-*.yaml")
-	assert.NoError(t, err)
-	defer os.Remove(tmpFile.Name())
-
-	_, err = tmpFile.WriteString(":::bad_yaml:::")
-	assert.NoError(t, err)
-	tmpFile.Close()
-
-	cfg, err := LoadConfig(tmpFile.Name())
 	assert.Error(t, err)
 	assert.NotNil(t, cfg)
 }

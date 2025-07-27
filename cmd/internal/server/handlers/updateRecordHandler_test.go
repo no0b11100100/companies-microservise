@@ -20,7 +20,6 @@ import (
 
 func TestUpdateRecordHandler_Success(t *testing.T) {
 	ctrl := gomock.NewController(t)
-	defer ctrl.Finish()
 
 	mockDB := mocks.NewMockupdateRecordDB(ctrl)
 	mockEventSender := mocks.NewMockEventSender(ctrl)
@@ -32,10 +31,8 @@ func TestUpdateRecordHandler_Success(t *testing.T) {
 		Name: ptrString("Updated Company"),
 	}
 
-	// Ожидаем вызов UpdateRecord без ошибки
 	mockDB.EXPECT().UpdateRecord(company, id).Return(nil)
 
-	// Ожидаем вызов PublishEvent с успешным статусом
 	mockEventSender.EXPECT().PublishEvent("data-changed", gomock.Any()).DoAndReturn(
 		func(topic string, event structs.Event) error {
 			assert.Equal(t, structs.Updated, event.Type)
@@ -58,7 +55,6 @@ func TestUpdateRecordHandler_Success(t *testing.T) {
 
 func TestUpdateRecordHandler_InvalidUUID(t *testing.T) {
 	ctrl := gomock.NewController(t)
-	defer ctrl.Finish()
 
 	mockDB := mocks.NewMockupdateRecordDB(ctrl)
 	mockEventSender := mocks.NewMockEventSender(ctrl)
@@ -72,7 +68,6 @@ func TestUpdateRecordHandler_InvalidUUID(t *testing.T) {
 	req := httptest.NewRequest(http.MethodPatch, "/api/v1/companies/"+invalidID, nil)
 	req = req.WithContext(context.WithValue(req.Context(), chi.RouteCtxKey, rctx))
 
-	// Ожидаем вызов PublishEvent с ошибкой
 	mockEventSender.EXPECT().PublishEvent("data-changed", gomock.Any()).Return(nil)
 
 	rr := httptest.NewRecorder()
@@ -83,7 +78,6 @@ func TestUpdateRecordHandler_InvalidUUID(t *testing.T) {
 
 func TestUpdateRecordHandler_UpdateRecordError(t *testing.T) {
 	ctrl := gomock.NewController(t)
-	defer ctrl.Finish()
 
 	mockDB := mocks.NewMockupdateRecordDB(ctrl)
 	mockEventSender := mocks.NewMockEventSender(ctrl)

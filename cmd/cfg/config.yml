@@ -1,0 +1,21 @@
+db:
+  host: db
+  port: "3306"
+  name: companiesdb
+  user: root
+  password: password
+  readiness:
+    max_wait_seconds: 30
+    poll_interval_seconds: 2
+
+kafka:
+  broker: kafka:9092
+  readiness:
+    max_wait_seconds: 30
+    poll_interval_seconds: 2
+
+http:
+  addr: "0.0.0.0"
+  port: "8080"
+  read_timeout_seconds: 15
+  write_timeout_seconds: 15

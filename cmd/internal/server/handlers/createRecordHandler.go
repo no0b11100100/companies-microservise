@@ -1,0 +1,102 @@
+package handlers
+
+import (
+	"companies/cmd/internal/consts"
+	"companies/cmd/internal/database"
+	eventsender "companies/cmd/internal/eventSender"
+	"encoding/json"
+	"log"
+	"net/http"
+
+	"github.com/google/uuid"
+)
+
+const (
+	kMaxNameLenght        = 15
+	kMaxDescriptionLenght = 3000
+)
+
+type createRecordDB interface {
+	CreateRecord(database.CompanyInfo) (uuid.UUID, error)
+	IsRecordExists(string) bool
+}
+
+func IsValidInfo(data database.CompanyInfo) bool {
+	if data.Name == nil {
+		return false
+	}
+
+	if len(*data.Name) > kMaxNameLenght {
+		return false
+	}
+
+	if data.Description != nil && len(*data.Description) > kMaxDescriptionLenght {
+		return false
+	}
+
+	if data.Employees == nil {
+		return false
+	}
+
+	if data.IsRegistered == nil {
+		return false
+	}
+
+	if data.Type == nil {
+		return false
+	}
+
+	return true
+}
+
+func NewCreateRecordHandler(db createRecordDB, eventSender eventsender.EventSender) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		log.Println(consts.ApplicationPrefix, "createRecordHandler::handler", r.Body)
+		var record database.CompanyInfo
+		json.NewDecoder(r.Body).Decode(&record)
+
+		if !IsValidInfo(record) {
+			log.Println(consts.ApplicationPrefix, "createRecordHandler::handler invalid data")
+			w.WriteHeader(http.StatusBadRequest)
+			eventSender.PublishEvent("data-changed", eventsender.Event{
+				Type:          eventsender.Created,
+				Status:        eventsender.Failed,
+				ErrorMesssage: "invalid data provided",
+			})
+			return
+		}
+
+		if db.IsRecordExists(*record.Name) {
+			log.Println(consts.ApplicationPrefix, "createRecordHandler::handler record alredy exist")
+			w.WriteHeader(http.StatusConflict)
+			eventSender.PublishEvent("data-changed", eventsender.Event{
+				Type:          eventsender.Created,
+				Status:        eventsender.Failed,
+				ErrorMesssage: "record alredy exist",
+			})
+			return
+		}
+
+		id, err := db.CreateRecord(record)
+		if err != nil {
+			eventSender.PublishEvent("data-changed", eventsender.Event{
+				Type:          eventsender.Created,
+				Status:        eventsender.Failed,
+				ErrorMesssage: err.Error(),
+			})
+			log.Println(consts.ApplicationPrefix, "createRecordHandler::handler error:", err)
+			w.WriteHeader(http.StatusBadRequest)
+			return
+		}
+
+		eventSender.PublishEvent("data-changed", eventsender.Event{
+			Type:   eventsender.Created,
+			Status: eventsender.Success,
+		})
+
+		w.WriteHeader(http.StatusCreated)
+
+		resp := map[string]string{"companyId": id.String()}
+		json.NewEncoder(w).Encode(resp)
+	}
+}

@@ -1,6 +1,7 @@
 package auth
 
 import (
+	configparser "companies/cmd/internal/configParser"
 	"companies/cmd/internal/consts"
 	"errors"
 	"log"
@@ -10,7 +11,7 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 )
 
-var jwtKey = []byte("your-very-secret-key") // replace with env/config
+// var jwtKey = []byte("your-very-secret-key") // replace with env/config
 
 type Claims struct {
 	Username string `json:"username"`
@@ -19,6 +20,7 @@ type Claims struct {
 
 func validateToken(tokenStr string) (*Claims, error) {
 	claims := &Claims{}
+	jwtKey := configparser.GetCfgValue("JWT_SECRET", "default-secret")
 	token, err := jwt.ParseWithClaims(tokenStr, claims, func(token *jwt.Token) (interface{}, error) {
 		return jwtKey, nil
 	})

@@ -9,14 +9,9 @@ services:
       - db
       - kafka
     environment:
-      - DB_HOST=db
-      - DB_PORT=3306
-      - DB_NAME=companiesdb
-      - DB_USER=root
-      - DB_PASSWORD=password
-      - KAFKA_BROKER=kafka:9092
-      - HTTP_HOST=0.0.0.0
-      - HTTP_PORT=8080
+      HTTP_HOST: 0.0.0.0
+      HTTP_PORT: 8080
+      JWT_SECRET: w4X8bY9s4fJ7nHxPlA+2Fv7Yq8RmQO3SZj8Phq+k6Xo=
     networks:
       - app-network
 
@@ -28,6 +23,11 @@ services:
     environment:
       MYSQL_ROOT_PASSWORD: password
       MYSQL_DATABASE: companiesdb
+      DB_HOST: db
+      DB_PORT: 3306
+      DB_NAME: companiesdb
+      DB_USER: root
+      DB_PASSWORD: password
     volumes:
       - db_data:/var/lib/mysql
     networks:
@@ -50,6 +50,7 @@ services:
       KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
       KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_BROKER: kafka:9092
     depends_on:
       - zookeeper
     networks:

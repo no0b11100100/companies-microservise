@@ -34,7 +34,7 @@ func IsValidInfo(data database.CompanyInfo) bool {
 		return false
 	}
 
-	if data.Employees == nil {
+	if data.EmployeesCount == nil {
 		return false
 	}
 

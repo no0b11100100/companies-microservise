@@ -3,6 +3,7 @@
 package auth
 
 import (
+	configparser "companies/cmd/internal/configParser"
 	"encoding/json"
 	"net/http"
 	"time"
@@ -20,6 +21,7 @@ func GenerateToken(username string) (string, error) {
 	}
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 
+	jwtKey := configparser.GetCfgValue("JWT_SECRET", "default-secret")
 	return token.SignedString(jwtKey)
 }
 

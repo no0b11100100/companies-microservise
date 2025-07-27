@@ -50,7 +50,7 @@ func NewMySQLDB(config configparser.DB) Storage {
 		log.Fatal("Failed to connect to database:", err)
 	}
 
-	db.AutoMigrate(&Record{})
+	db.AutoMigrate(&CompanyInfo{})
 
 	return &MySQLDB{db}
 }
@@ -116,21 +116,19 @@ func initDB(user, psswd, addr, port, dbName string) {
 }
 
 func (msql *MySQLDB) CreateRecord(data CompanyInfo) (uuid.UUID, error) {
-	record := Record{CompanyInfo: data}
-	err := msql.db.Create(&record).Error
+	err := msql.db.Create(&data).Error
 	if err != nil {
 		return uuid.Nil, errors.New("CreateRecord error: " + err.Error())
 	}
-	return *record.CompanyID, nil
+	return *data.ID, nil
 }
 
 func (msql *MySQLDB) UpdateRecord(data CompanyInfo, id uuid.UUID) error {
-	record := Record{CompanyInfo: data}
-	if err := msql.db.Where("company_id = ?", id).First(&record).Error; err != nil {
+	if err := msql.db.Where("id = ?", id).First(&data).Error; err != nil {
 		return errors.New("UpdateRecord error: " + err.Error())
 	}
 
-	if err := msql.db.Save(&record).Error; err != nil {
+	if err := msql.db.Save(&data).Error; err != nil {
 		return errors.New("UpdateRecord error: " + err.Error())
 	}
 
@@ -138,7 +136,7 @@ func (msql *MySQLDB) UpdateRecord(data CompanyInfo, id uuid.UUID) error {
 }
 
 func (msql *MySQLDB) DeleteRecord(id uuid.UUID) error {
-	if err := msql.db.Where("company_id = ?", id).Delete(&Record{}).Error; err != nil {
+	if err := msql.db.Where("id = ?", id).Delete(&CompanyInfo{}).Error; err != nil {
 		return errors.New("DeleteRecord error: " + err.Error())
 	}
 
@@ -146,16 +144,16 @@ func (msql *MySQLDB) DeleteRecord(id uuid.UUID) error {
 }
 
 func (msql *MySQLDB) GetRecord(id uuid.UUID) (CompanyInfo, error) {
-	record := Record{}
-	if err := msql.db.Where("company_id = ?", id).First(&record).Error; err != nil {
-		return record.CompanyInfo, errors.New("GetRecord error: " + err.Error())
+	record := CompanyInfo{}
+	if err := msql.db.Where("id = ?", id).First(&record).Error; err != nil {
+		return record, errors.New("GetRecord error: " + err.Error())
 	}
 
-	return record.CompanyInfo, nil
+	return record, nil
 }
 
 func (msql *MySQLDB) IsRecordExists(name string) bool {
-	var record Record
+	var record CompanyInfo
 	err := msql.db.Select("id").Where("name = ?", name).Limit(1).First(&record).Error
 	if err != nil {
 		if err == gorm.ErrRecordNotFound {

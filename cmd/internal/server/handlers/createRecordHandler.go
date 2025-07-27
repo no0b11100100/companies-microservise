@@ -49,6 +49,16 @@ func IsValidInfo(data database.CompanyInfo) bool {
 	return true
 }
 
+// @Summary Create a new company
+// @Description Creates a new company. Requires JWT authentication.
+// @Tags companies
+// @Accept json
+// @Produce json
+// @Param company body database.CompanyInfo true "Company to create"
+// @Success 201 {object} database.CompanyInfo
+// @Failure 400 {object} map[string]string
+// @Security BearerAuth
+// @Router /api/v1/companies [post]
 func NewCreateRecordHandler(db createRecordDB, eventSender eventsender.EventSender) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		log.Println(consts.ApplicationPrefix, "createRecordHandler::handler", r.Body)

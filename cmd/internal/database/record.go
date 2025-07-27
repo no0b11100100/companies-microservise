@@ -5,6 +5,7 @@ import (
 	"gorm.io/gorm"
 )
 
+// CompanyInfo represents a company object
 type CompanyInfo struct {
 	CompanyID    *uuid.UUID `json:"companyid,omitempty" gorm:"type:char(36);not null;uniqueIndex"`
 	Name         *string    `json:"name"`

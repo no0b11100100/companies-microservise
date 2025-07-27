@@ -14,6 +14,14 @@ type deleteRecordDB interface {
 	DeleteRecord(uuid.UUID) error
 }
 
+// @Summary Delete a company
+// @Description Deletes the company by ID. Requires JWT authentication.
+// @Tags companies
+// @Param id path string true "Company ID"
+// @Success 204 {string} string ""
+// @Failure 400 {object} map[string]string
+// @Security BearerAuth
+// @Router /api/v1/companies/{id} [delete]
 func NewDeleteRecordHandler(db deleteRecordDB, eventSender eventsender.EventSender) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		log.Println(consts.ApplicationPrefix, "deleteRecordHandler::handler", r.Body)

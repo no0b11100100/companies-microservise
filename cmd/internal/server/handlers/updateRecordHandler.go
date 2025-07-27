@@ -16,6 +16,17 @@ type updateRecordDB interface {
 	UpdateRecord(database.CompanyInfo, uuid.UUID) error
 }
 
+// @Summary Update an existing company
+// @Description Updates the company by ID. Requires JWT authentication.
+// @Tags companies
+// @Accept json
+// @Produce json
+// @Param id path string true "Company ID"
+// @Param company body database.CompanyInfo true "Updated company data"
+// @Success 200 {object} database.CompanyInfo
+// @Failure 400 {object} map[string]string
+// @Security BearerAuth
+// @Router /api/v1/companies/{id} [patch]
 func NewUpdateRecordHandler(db updateRecordDB, eventSender eventsender.EventSender) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		log.Println(consts.ApplicationPrefix, "updateRecordHandler::handler", r.Body)

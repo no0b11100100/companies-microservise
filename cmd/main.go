@@ -11,6 +11,14 @@ import (
 
 // docker-compose down --remove-orphans
 
+// @title Company API
+// @version 1.0
+// @description REST API for managing companies
+// @host localhost:8080
+// @securityDefinitions.apikey BearerAuth
+// @in header
+// @name Authorization
+// @BasePath /
 func main() {
 	log.Println(consts.ApplicationPrefix, "Starting app")
 
@@ -20,11 +28,11 @@ func main() {
 		log.Println(consts.ApplicationPrefix, "Failed to load config", err.Error())
 	}
 
-	db := database.NewMySQLDB(config.DB /*, "root", "password", "db", "3306", "companiesdb"*/)
+	db := database.NewMySQLDB(config.DB)
 
-	eventSender := eventsender.NewEventSender(config.Kafka /*, "kafka:9092"*/)
+	eventSender := eventsender.NewEventSender(config.Kafka)
 
-	restServer := server.NewRESTfulServer(config.HTTP /*"0.0.0.0", "8080",*/, db, eventSender)
+	restServer := server.NewRESTfulServer(config.HTTP, db, eventSender)
 
 	restServer.Serve()
 

@@ -15,6 +15,14 @@ type getRecordDB interface {
 	GetRecord(uuid.UUID) (database.CompanyInfo, error)
 }
 
+// @Summary Get company by ID
+// @Description Returns a single company by ID. Public endpoint.
+// @Tags companies
+// @Produce json
+// @Param id path string true "Company ID"
+// @Success 200 {object} database.CompanyInfo
+// @Failure 404 {object} map[string]string
+// @Router /api/v1/companies/{id} [get]
 func NewGetRecordHandler(db getRecordDB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		log.Println(consts.ApplicationPrefix, "getRecordHandler::handler")
@@ -34,7 +42,7 @@ func NewGetRecordHandler(db getRecordDB) http.HandlerFunc {
 
 		if err != nil {
 			log.Println(consts.ApplicationPrefix, "getRecordHandler::handler error:", err)
-			w.WriteHeader(http.StatusBadRequest)
+			w.WriteHeader(http.StatusNotFound)
 			return
 		}
 

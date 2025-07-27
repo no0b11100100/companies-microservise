@@ -8,3 +8,4 @@ go get github.com/golang-jwt/jwt/v5
 go get github.com/google/uuid
 go get gopkg.in/yaml.v2
 # go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest
+# go install github.com/swaggo/swag/cmd/swag@latest

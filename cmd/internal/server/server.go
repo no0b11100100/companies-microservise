@@ -13,6 +13,7 @@ import (
 
 	"github.com/go-chi/chi/middleware"
 	"github.com/go-chi/chi/v5"
+	httpSwagger "github.com/swaggo/http-swagger"
 )
 
 type RESTfulServer struct {
@@ -48,6 +49,8 @@ func (s *RESTfulServer) initHandlers(db database.Database, eventSender eventsend
 
 	// just for test
 	s.router.Post("/api/v1/token", auth.HandleFunc)
+
+	s.router.Get("/swagger/*", httpSwagger.WrapHandler)
 
 	s.router.Route("/api/v1/companies", func(r chi.Router) {
 		r.With(auth.JWTMiddleware).Post("/", create)

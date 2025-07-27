@@ -4,6 +4,7 @@ import (
 	"companies/cmd/internal/consts"
 	"companies/cmd/internal/database"
 	eventsender "companies/cmd/internal/eventSender"
+	"companies/cmd/internal/structs"
 	"encoding/json"
 	"log"
 	"net/http"
@@ -12,6 +13,7 @@ import (
 	"github.com/google/uuid"
 )
 
+//go:generate mockgen -source=updateRecordHandler.go -destination=../../../tests/mocks/mock_update_record.go -package=mocks
 type updateRecordDB interface {
 	UpdateRecord(database.CompanyInfo, uuid.UUID) error
 }
@@ -39,10 +41,10 @@ func NewUpdateRecordHandler(db updateRecordDB, eventSender eventsender.EventSend
 
 		if err != nil {
 			log.Println(consts.ApplicationPrefix, "updateRecordHandler::handler error:", err)
-			eventSender.PublishEvent("data-changed", eventsender.Event{
+			eventSender.PublishEvent("data-changed", structs.Event{
 				URL:           r.URL.Path,
-				Type:          eventsender.Updated,
-				Status:        eventsender.Failed,
+				Type:          structs.Updated,
+				Status:        structs.Failed,
 				ErrorMesssage: err.Error(),
 			})
 			w.WriteHeader(http.StatusBadRequest)
@@ -56,10 +58,10 @@ func NewUpdateRecordHandler(db updateRecordDB, eventSender eventsender.EventSend
 		err = db.UpdateRecord(data, id)
 
 		if err != nil {
-			eventSender.PublishEvent("data-changed", eventsender.Event{
+			eventSender.PublishEvent("data-changed", structs.Event{
 				URL:           r.URL.Path,
-				Type:          eventsender.Updated,
-				Status:        eventsender.Failed,
+				Type:          structs.Updated,
+				Status:        structs.Failed,
 				ErrorMesssage: err.Error(),
 			})
 			log.Println(consts.ApplicationPrefix, "updateRecordHandler::handler error:", err)
@@ -68,10 +70,10 @@ func NewUpdateRecordHandler(db updateRecordDB, eventSender eventsender.EventSend
 		}
 
 		bytes, _ := json.Marshal(data)
-		eventSender.PublishEvent("data-changed", eventsender.Event{
+		eventSender.PublishEvent("data-changed", structs.Event{
 			URL:    r.URL.Path,
-			Type:   eventsender.Updated,
-			Status: eventsender.Success,
+			Type:   structs.Updated,
+			Status: structs.Success,
 			Data:   bytes,
 		})
 

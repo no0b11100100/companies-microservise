@@ -25,6 +25,7 @@ type RESTfulServer struct {
 	srv    *http.Server
 }
 
+//go:generate mockgen -source=server.go -destination=../../tests/mocks/mock_rest_server.go -package=mocks
 type RESTServer interface {
 	Serve()
 	Shutdown() error

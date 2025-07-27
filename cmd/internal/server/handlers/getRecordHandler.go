@@ -11,6 +11,7 @@ import (
 	"github.com/google/uuid"
 )
 
+//go:generate mockgen -source=getRecordHandler.go -destination=../../../tests/mocks/mock_get_record.go -package=mocks
 type getRecordDB interface {
 	GetRecord(uuid.UUID) (database.CompanyInfo, error)
 }

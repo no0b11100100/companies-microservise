@@ -8,6 +8,8 @@ import (
 	"log"
 	"net/http"
 
+	"companies/cmd/internal/structs"
+
 	"github.com/google/uuid"
 )
 
@@ -16,6 +18,7 @@ const (
 	kMaxDescriptionLenght = 3000
 )
 
+//go:generate mockgen -source=createRecordHandler.go -destination=../../../tests/mocks/mock_create_record.go -package=mocks
 type createRecordDB interface {
 	CreateRecord(database.CompanyInfo) (uuid.UUID, error)
 	IsRecordExists(string) bool
@@ -69,10 +72,10 @@ func NewCreateRecordHandler(db createRecordDB, eventSender eventsender.EventSend
 		if !IsValidInfo(record) {
 			log.Println(consts.ApplicationPrefix, "createRecordHandler::handler invalid data")
 			w.WriteHeader(http.StatusBadRequest)
-			eventSender.PublishEvent("data-changed", eventsender.Event{
+			eventSender.PublishEvent("data-changed", structs.Event{
 				URL:           r.URL.Path,
-				Type:          eventsender.Created,
-				Status:        eventsender.Failed,
+				Type:          structs.Created,
+				Status:        structs.Failed,
 				ErrorMesssage: "invalid data provided",
 			})
 			return
@@ -81,10 +84,10 @@ func NewCreateRecordHandler(db createRecordDB, eventSender eventsender.EventSend
 		if db.IsRecordExists(*record.Name) {
 			log.Println(consts.ApplicationPrefix, "createRecordHandler::handler record alredy exist")
 			w.WriteHeader(http.StatusConflict)
-			eventSender.PublishEvent("data-changed", eventsender.Event{
+			eventSender.PublishEvent("data-changed", structs.Event{
 				URL:           r.URL.Path,
-				Type:          eventsender.Created,
-				Status:        eventsender.Failed,
+				Type:          structs.Created,
+				Status:        structs.Failed,
 				ErrorMesssage: "record alredy exist",
 			})
 			return
@@ -92,10 +95,10 @@ func NewCreateRecordHandler(db createRecordDB, eventSender eventsender.EventSend
 
 		id, err := db.CreateRecord(record)
 		if err != nil {
-			eventSender.PublishEvent("data-changed", eventsender.Event{
+			eventSender.PublishEvent("data-changed", structs.Event{
 				URL:           r.URL.Path,
-				Type:          eventsender.Created,
-				Status:        eventsender.Failed,
+				Type:          structs.Created,
+				Status:        structs.Failed,
 				ErrorMesssage: err.Error(),
 			})
 			log.Println(consts.ApplicationPrefix, "createRecordHandler::handler error:", err)
@@ -103,10 +106,10 @@ func NewCreateRecordHandler(db createRecordDB, eventSender eventsender.EventSend
 			return
 		}
 
-		eventSender.PublishEvent("data-changed", eventsender.Event{
+		eventSender.PublishEvent("data-changed", structs.Event{
 			URL:    r.URL.Path,
-			Type:   eventsender.Created,
-			Status: eventsender.Success,
+			Type:   structs.Created,
+			Status: structs.Success,
 		})
 
 		w.WriteHeader(http.StatusCreated)

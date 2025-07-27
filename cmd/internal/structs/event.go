@@ -1,4 +1,4 @@
-package eventsender
+package structs
 
 import "encoding/json"
 

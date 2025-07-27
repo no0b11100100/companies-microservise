@@ -3,6 +3,7 @@ package eventsender
 import (
 	configparser "companies/cmd/internal/configParser"
 	"companies/cmd/internal/consts"
+	"companies/cmd/internal/structs"
 	"context"
 	"encoding/json"
 	"errors"
@@ -12,12 +13,19 @@ import (
 	"github.com/confluentinc/confluent-kafka-go/v2/kafka"
 )
 
+//go:generate mockgen -source=sender.go -destination=../../tests/mocks/mock_event_sender.go -package=mocks
 type EventSender interface {
-	PublishEvent(string, Event) error
+	PublishEvent(string, structs.Event) error
+}
+
+type Producer interface {
+	Produce(msg *kafka.Message, deliveryChan chan kafka.Event) error
+	GetMetadata(topic *string, allTopics bool, timeoutMs int) (*kafka.Metadata, error)
+	Close()
 }
 
 type sender struct {
-	producer *kafka.Producer
+	producer Producer
 }
 
 func NewEventSender(config configparser.Kafka) EventSender {
@@ -59,7 +67,7 @@ func (s *sender) waitRediness() {
 	}
 }
 
-func (s *sender) PublishEvent(topic string, event Event) error {
+func (s *sender) PublishEvent(topic string, event structs.Event) error {
 	deliveryChan := make(chan kafka.Event)
 
 	message, err := json.Marshal(event)

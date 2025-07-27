@@ -1,0 +1,146 @@
+definitions:
+  database.CompanyInfo:
+    properties:
+      companyid:
+        type: string
+      description:
+        type: string
+      employees:
+        type: integer
+      isRegistered:
+        type: boolean
+      name:
+        type: string
+      type:
+        type: integer
+    type: object
+host: localhost:8080
+info:
+  contact: {}
+  description: REST API for managing companies
+  title: Company API
+  version: "1.0"
+paths:
+  /api/v1/companies:
+    post:
+      consumes:
+      - application/json
+      description: Creates a new company with the provided information
+      parameters:
+      - description: Company to create
+        in: body
+        name: company
+        required: true
+        schema:
+          $ref: '#/definitions/database.CompanyInfo'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created. Returns the new company ID
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Bad request – invalid input or error
+          schema:
+            type: string
+        "409":
+          description: Conflict – record already exists
+          schema:
+            type: string
+      security:
+      - BearerAuth: []
+      summary: Create a new company record
+      tags:
+      - Companies
+  /api/v1/companies/{id}:
+    delete:
+      description: Deletes a company record by its UUID
+      parameters:
+      - description: Company UUID
+        in: path
+        name: id
+        required: true
+        type: string
+      responses:
+        "200":
+          description: Successfully deleted
+          schema:
+            type: string
+        "400":
+          description: Invalid UUID or deletion failed
+          schema:
+            type: string
+      security:
+      - BearerAuth: []
+      summary: Delete a company
+      tags:
+      - Companies
+    get:
+      consumes:
+      - application/json
+      description: Retrieves company information using a UUID
+      parameters:
+      - description: Company UUID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Company found
+          schema:
+            $ref: '#/definitions/database.CompanyInfo'
+        "400":
+          description: Invalid UUID
+          schema:
+            type: string
+        "404":
+          description: Company not found
+          schema:
+            type: string
+      summary: Get a company by ID
+      tags:
+      - Companies
+    patch:
+      consumes:
+      - application/json
+      description: Updates company information by UUID
+      parameters:
+      - description: Company UUID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Updated company data
+        in: body
+        name: company
+        required: true
+        schema:
+          $ref: '#/definitions/database.CompanyInfo'
+      produces:
+      - application/json
+      responses:
+        "202":
+          description: Accepted – update in progress
+          schema:
+            type: string
+        "400":
+          description: Bad request – invalid UUID or body
+          schema:
+            type: string
+      security:
+      - BearerAuth: []
+      summary: Update an existing company
+      tags:
+      - Companies
+securityDefinitions:
+  BearerAuth:
+    in: header
+    name: Authorization
+    type: apiKey
+swagger: "2.0"

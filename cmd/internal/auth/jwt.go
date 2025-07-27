@@ -11,8 +11,6 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 )
 
-// var jwtKey = []byte("your-very-secret-key") // replace with env/config
-
 type Claims struct {
 	Username string `json:"username"`
 	jwt.RegisteredClaims

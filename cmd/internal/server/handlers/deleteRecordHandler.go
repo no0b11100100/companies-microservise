@@ -3,6 +3,7 @@ package handlers
 import (
 	"companies/cmd/internal/consts"
 	eventsender "companies/cmd/internal/eventSender"
+	"companies/cmd/internal/structs"
 	"log"
 	"net/http"
 
@@ -10,6 +11,7 @@ import (
 	"github.com/google/uuid"
 )
 
+//go:generate mockgen -source=deleteRecordHandler.go -destination=../../../tests/mocks/mock_delete_record.go -package=mocks
 type deleteRecordDB interface {
 	DeleteRecord(uuid.UUID) error
 }
@@ -33,10 +35,10 @@ func NewDeleteRecordHandler(db deleteRecordDB, eventSender eventsender.EventSend
 		id, err := uuid.Parse(uuidStr)
 
 		if err != nil {
-			eventSender.PublishEvent("data-changed", eventsender.Event{
+			eventSender.PublishEvent("data-changed", structs.Event{
 				URL:           r.URL.Path,
-				Type:          eventsender.Deleted,
-				Status:        eventsender.Failed,
+				Type:          structs.Deleted,
+				Status:        structs.Failed,
 				ErrorMesssage: err.Error(),
 			})
 			log.Println(consts.ApplicationPrefix, "deleteRecordHandler::handler error:", err)
@@ -46,20 +48,20 @@ func NewDeleteRecordHandler(db deleteRecordDB, eventSender eventsender.EventSend
 
 		if err := db.DeleteRecord(id); err != nil {
 			log.Println(consts.ApplicationPrefix, "deleteRecordHandler::handler error:", err)
-			eventSender.PublishEvent("data-changed", eventsender.Event{
+			eventSender.PublishEvent("data-changed", structs.Event{
 				URL:           r.URL.Path,
-				Type:          eventsender.Deleted,
-				Status:        eventsender.Failed,
+				Type:          structs.Deleted,
+				Status:        structs.Failed,
 				ErrorMesssage: err.Error(),
 			})
 			w.WriteHeader(http.StatusBadRequest)
 			return
 		}
 
-		eventSender.PublishEvent("data-changed", eventsender.Event{
+		eventSender.PublishEvent("data-changed", structs.Event{
 			URL:    r.URL.Path,
-			Type:   eventsender.Deleted,
-			Status: eventsender.Success,
+			Type:   structs.Deleted,
+			Status: structs.Success,
 		})
 
 		w.WriteHeader(http.StatusOK)

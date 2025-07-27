@@ -16,6 +16,7 @@ import (
 	"gorm.io/gorm"
 )
 
+//go:generate mockgen -source=database.go -destination=../../tests/mocks/mock_database.go -package=mocks
 type MySQLDB struct {
 	db *gorm.DB
 }
